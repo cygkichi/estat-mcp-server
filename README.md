@@ -51,7 +51,10 @@
             "command": "uvx",
             "args": [
                 "estat-mcp-server"
-            ]
+            ],
+            "env": {
+                "E_STAT_APP_ID": "YOUR_E_STAT_APP_ID"
+            }
         }
     }
 }

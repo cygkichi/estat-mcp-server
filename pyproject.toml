@@ -1,10 +1,14 @@
 [project]
 name = "estat-mcp-server"
-version = "0.1.0"
-description = "using e-stat"
+version = "0.1.1"
+description = "MCP server for Japan's e-Stat API integration"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [ "mcp>=1.6.0",]
+
+[project.urls]
+"Homepage" = "https://github.com/cygkichi/estat-mcp-server"
+
 [[project.authors]]
 name = "cygkichi"
 email = "9675041+cygkichi@users.noreply.github.com"

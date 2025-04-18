@@ -2,23 +2,6 @@ version = 1
 revision = 1
 requires-python = ">=3.11"
 
-[manifest]
-members = [
-    "a",
-    "estat-mcp-server",
-]
-
-[[package]]
-name = "a"
-version = "0.1.0"
-source = { editable = "tmp/a" }
-dependencies = [
-    { name = "mcp" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "mcp", specifier = ">=1.6.0" }]
-
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -74,7 +57,7 @@ wheels = [
 
 [[package]]
 name = "estat-mcp-server"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },

@@ -210,5 +210,10 @@ async def get_e_stat_data_catalog(
         response.raise_for_status()
         return response.text
 
+def main() -> None:
+    print("Starting Oura MCP server!")
+    mcp_server.run(transport="stdio")
+
 if __name__ == "__main__":
-    mcp_server.run()
+    main()
+
