@@ -3,12 +3,44 @@ E-Stat MCP Server
 """
 import os
 import httpx
-from typing import Optional
+from typing import Optional, Dict, Any
 from mcp.server.fastmcp import FastMCP
 
 mcp_server = FastMCP("EStatServer")
 E_STAT_API_BASE_URL = "https://api.e-stat.go.jp/rest/3.0/app/"
 E_STAT_APP_ID = os.getenv("E_STAT_APP_ID")
+
+async def make_e_stat_request(url: str, timeout: int = 30) -> str:
+    """
+    共通のE-Stat APIリクエスト処理を行う関数
+
+    Args:
+        url (str): リクエスト先のURL
+        timeout (int, optional): タイムアウト時間（秒）。デフォルトは30秒。
+
+    Returns:
+        str: APIレスポンスのテキスト
+    """
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.text
+    except Exception as e:
+        if isinstance(e, httpx.TimeoutException):
+            error_msg = f"タイムアウトエラーが発生しました。現在のタイムアウト設定: {timeout}秒"
+            return f"{{\"ERROR\": \"{error_msg}\", \"status\": \"timeout\"}}"
+        elif isinstance(e, httpx.ConnectError):
+            error_msg = "E-Stat APIサーバーへの接続に失敗しました。ネットワーク接続を確認してください。"
+            return f"{{\"ERROR\": \"{error_msg}\", \"status\": \"connection_error\"}}"
+        elif isinstance(e, httpx.HTTPStatusError):
+            status_code = e.response.status_code
+            error_msg = f"HTTPエラー（ステータスコード: {status_code}）が発生しました。"
+            return f"{{\"ERROR\": \"{error_msg}\", \"status\": \"http_error\", \"status_code\": {status_code}}}"
+        else:
+            error_msg = f"予期せぬエラーが発生しました: {str(e)}"
+            return f"{{\"ERROR\": \"{error_msg}\", \"status\": \"unknown_error\"}}"
+
 
 @mcp_server.tool()
 async def search_e_stat_tables(
@@ -54,10 +86,7 @@ async def search_e_stat_tables(
         f"&searchWord={search_word}&limit={limit}"
         f"&surveyYears={surveyYears}&startPosition={startPosition}"
     )
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.text
+    return await make_e_stat_request(url)
 
 
 
@@ -81,10 +110,7 @@ async def get_e_stat_meta_info(
         f"{E_STAT_API_BASE_URL}getMetaInfo?appId={E_STAT_APP_ID}"
         f"&statsDataId={stats_data_id}"
     )
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.text
+    return await make_e_stat_request(url)
 
 
 @mcp_server.tool()
@@ -129,10 +155,7 @@ async def get_specific_e_stat_data(
     else:
         raise ValueError("Either 'data_set_id' or 'stats_data_id' must be provided, but not both.")
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.text
+    return await make_e_stat_request(url)
 
 
 @mcp_server.tool()
@@ -154,10 +177,7 @@ async def get_e_stat_ref_dataset(
     url = (
         f"{E_STAT_API_BASE_URL}refDataset?appId={E_STAT_APP_ID}"
     )
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.text
+    return await make_e_stat_request(url)
 
 
 @mcp_server.tool()
@@ -205,10 +225,7 @@ async def get_e_stat_data_catalog(
         f"&searchWord={search_word}&surveyYears={surveyYears}"
         f"&startPosition={startPosition}&limit={limit}"
     )
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.text
+    return await make_e_stat_request(url)
 
 def main() -> None:
     print("Starting Oura MCP server!")
